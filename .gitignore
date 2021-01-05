@@ -16,10 +16,12 @@ web/.htaccess
 # Dotenv
 .env
 .env.*
-!.env.example
 
 # Composer
 /vendor
 
 # WP-CLI
 wp-cli.local.yml
+
+/node_modules
+package-lock.json

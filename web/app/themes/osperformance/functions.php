@@ -64,6 +64,8 @@ class StarterSite extends Timber\Site {
         add_action( 'init', array( $this, 'register_menus' ) );
         add_action( 'after_setup_theme', array( $this, 'theme_supports' ) );
         add_filter( 'block_categories', array( $this, 'register_block_categories' ), 10, 2 );
+        add_action( 'enqeueue_block_editor_assets', array( $this, 'setup_editor_styles' ) );
+        add_action( 'acf/input/admin_footer', array( $this, 'register_acf_colour_palette' ) );
 		add_filter( 'timber/context', array( $this, 'add_to_context' ) );
 		add_filter( 'timber/twig', array( $this, 'add_to_twig' ) );
 		add_action( 'init', array( $this, 'register_post_types' ) );
@@ -113,6 +115,13 @@ class StarterSite extends Timber\Site {
                 acf_register_block_type($settings);
             }
         }
+    }
+
+    public function setup_editor_styles() {
+        wp_enqueue_style(
+            'main-stylesheet',
+            get_template_directory_uri() . '/dist/css/editor.css'
+        );
     }
 
 	/** This is where you add some context
@@ -188,7 +197,100 @@ class StarterSite extends Timber\Site {
                 'capability' => 'edit_posts',
             ]);
         }
-	}
+
+        /** Theme Colour Palette */
+        add_theme_support( 'editor-color-palette', array(
+            array(
+                'name' => 'Light Grey',
+                'slug' => 'light-grey',
+                'color' => '#EEF1F0',
+            ),
+            array(
+                'name' => 'grey',
+                'slug' => 'grey',
+                'color' => '#838CA2',
+            ),
+            array(
+                'name' => 'Dark Grey',
+                'slug' => 'dark-grey',
+                'color' => '#272933',
+            ),
+            array(
+                'name' => 'Gold',
+                'slug' => 'gold',
+                'color' => '#CA9750',
+            ),
+            array(
+                'name' => 'Red',
+                'slug' => 'red',
+                'color' => '#E83333',
+            ),
+            array(
+                'name' => 'Green',
+                'slug' => 'green',
+                'color' => '#5da569',
+            ),
+            array(
+                'name' => 'White',
+                'slug' => 'white',
+                'color' => '#FFFFFF',
+            ),
+            array(
+                'name' => 'Black',
+                'slug' => 'black',
+                'color' => '#000000',
+            ),
+        ) );
+        add_theme_support( 'disable-custom-colors' );
+
+    }
+
+    /** Get colours formatted */
+    public function output_the_colours() {
+        // get the colors
+        $colour_palette = current( (array) get_theme_support( 'editor-color-palette' ) );
+
+        // bail if there aren't any colors found
+        if ( !$colour_palette )
+            return;
+
+        // output begins
+        ob_start();
+
+        // output the names in a string
+        echo '[';
+            foreach ( $colour_palette as $colour ) {
+                echo "'" . $colour['color'] . "', ";
+            }
+        echo ']';
+
+        return ob_get_clean();
+    }
+
+    /** Add colour picker to ACF select fields */
+    public function register_acf_colour_palette() {
+
+        $colour_palette = array( $this, 'output_the_colours' )();
+        if ( !$colour_palette )
+            return;
+
+        ?>
+        <script type="text/javascript">
+            (function( $ ) {
+
+                acf.add_filter( 'color_picker_args', function( args, $field ){
+
+                    // add the hexadecimal codes here for the colors you want to appear as swatches
+                    args.palettes = <?php echo $colour_palette; ?>
+
+                    // return colors
+                    return args;
+
+                });
+            })(jQuery);
+        </script>
+        <?php
+    }
 
 	/** This Would return 'foo bar!'.
 	 *
