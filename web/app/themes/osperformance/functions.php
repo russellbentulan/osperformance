@@ -57,7 +57,7 @@ Timber::$autoescape = false;
  * We're going to configure our theme inside of a subclass of Timber\Site
  * You can move this to its own file and include here via php's include("MySite.php")
  */
-class StarterSite extends Timber\Site {
+class OSPerformance extends Timber\Site {
 	/** Add timber support. */
 	public function __construct() {
         add_action( 'init', array( $this, 'register_blocks' ) );
@@ -82,10 +82,15 @@ class StarterSite extends Timber\Site {
     }
 
     public function register_block_categories($categories, $post) {
-        return array_merge($categories, array(
-            'slug' => 'osperformance',
-            'title' => 'OS Performance'
-        ));
+        return array_merge(
+            $categories,
+            array(
+                array (
+                    'slug' => 'osperformance',
+                    'title' => 'OS Performance'
+                ),
+            ),
+        );
     }
 
     public function register_blocks() {
@@ -104,6 +109,7 @@ class StarterSite extends Timber\Site {
                     'mode' => 'preview',
                     'name' => $block,
                     'title' => ucfirst($block),
+                    'render_callback' => array($this, 'block_render_callback'),
                     'supports' => array(
                         'align' => true,
                         'align_content' => 'matrix',
@@ -115,6 +121,23 @@ class StarterSite extends Timber\Site {
                 acf_register_block_type($settings);
             }
         }
+    }
+
+    public function block_render_callback( $block, $content = '', $is_preview = false ) {
+        $context = Timber::context();
+
+        // Store block values.
+        $context['block'] = $block;
+
+        // Store field values.
+        $context['fields'] = get_fields();
+
+        // Store $is_preview value.
+        $context['is_preview'] = $is_preview;
+
+        $block_template = strtolower($block["title"]);
+        // Render the block.
+        Timber::render( "templates/blocks/$block_template.twig", $context );
     }
 
     public function setup_editor_styles() {
@@ -313,4 +336,4 @@ class StarterSite extends Timber\Site {
 
 }
 
-new StarterSite();
+new OSPerformance();

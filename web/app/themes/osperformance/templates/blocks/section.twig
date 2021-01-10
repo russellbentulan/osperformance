@@ -1,0 +1,15 @@
+{#
+/**
+ * Block Name: SECTION
+ *
+ * This is the template that displays the section block.
+ */
+#}
+
+{% if is_preview %}
+    <p>I will only appear in the editor.</p>
+{% endif %}
+
+<div id="example-{{ block.id }}" class="wrapper">
+    <InnerBlocks />
+</div>
