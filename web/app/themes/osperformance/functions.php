@@ -60,12 +60,9 @@ Timber::$autoescape = false;
 class OSPerformance extends Timber\Site {
 	/** Add timber support. */
 	public function __construct() {
-        add_action( 'init', array( $this, 'register_blocks' ) );
         add_action( 'init', array( $this, 'register_menus' ) );
         add_action( 'after_setup_theme', array( $this, 'theme_supports' ) );
-        add_filter( 'block_categories', array( $this, 'register_block_categories' ), 10, 2 );
         add_action( 'enqeueue_block_editor_assets', array( $this, 'setup_editor_styles' ) );
-        add_action( 'acf/input/admin_footer', array( $this, 'register_acf_colour_palette' ) );
 		add_filter( 'timber/context', array( $this, 'add_to_context' ) );
 		add_filter( 'timber/twig', array( $this, 'add_to_twig' ) );
 		add_action( 'init', array( $this, 'register_post_types' ) );
@@ -79,48 +76,6 @@ class OSPerformance extends Timber\Site {
 	/** This is where you can register custom taxonomies. */
 	public function register_taxonomies() {
 
-    }
-
-    public function register_block_categories($categories, $post) {
-        return array_merge(
-            $categories,
-            array(
-                array (
-                    'slug' => 'osperformance',
-                    'title' => 'OS Performance'
-                ),
-            ),
-        );
-    }
-
-    public function register_blocks() {
-        if ( function_exists('acf_register_block') ) {
-            $custom_blocks = array(
-                'section' => 'editor-code',
-                'service' => 'image-filter',
-                'instagramfeed' => 'instagram',
-            );
-
-            foreach ( $custom_blocks as $block => $icon ) {
-                $settings = array(
-                    'category' => 'osperformance',
-                    'description' => 'A custom ' . $block . ' block.',
-                    'icon' => $icon,
-                    'mode' => 'preview',
-                    'name' => $block,
-                    'title' => ucfirst($block),
-                    'render_callback' => array($this, 'block_render_callback'),
-                    'supports' => array(
-                        'align' => true,
-                        'align_content' => 'matrix',
-                        'jsx' => true,
-                        'anchor' => true
-                    )
-                );
-
-                acf_register_block_type($settings);
-            }
-        }
     }
 
     public function block_render_callback( $block, $content = '', $is_preview = false ) {
@@ -212,14 +167,6 @@ class OSPerformance extends Timber\Site {
 
         add_theme_support( 'align-wide' );
 
-        if (function_exists('acf_add_options_page')) {
-            acf_add_options_page([
-                'page_title' => 'Global Settings',
-                'menu_title' => 'Global Settings',
-                'menu_slug' => 'global-settings',
-                'capability' => 'edit_posts',
-            ]);
-        }
 
         /** Theme Colour Palette */
         add_theme_support( 'editor-color-palette', array(
@@ -288,31 +235,6 @@ class OSPerformance extends Timber\Site {
         echo ']';
 
         return ob_get_clean();
-    }
-
-    /** Add colour picker to ACF select fields */
-    public function register_acf_colour_palette() {
-
-        $colour_palette = array( $this, 'output_the_colours' )();
-        if ( !$colour_palette )
-            return;
-
-        ?>
-        <script type="text/javascript">
-            (function( $ ) {
-
-                acf.add_filter( 'color_picker_args', function( args, $field ){
-
-                    // add the hexadecimal codes here for the colors you want to appear as swatches
-                    args.palettes = <?php echo $colour_palette; ?>
-
-                    // return colors
-                    return args;
-
-                });
-            })(jQuery);
-        </script>
-        <?php
     }
 
 	/** This Would return 'foo bar!'.
