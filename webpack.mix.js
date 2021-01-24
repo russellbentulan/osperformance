@@ -1,7 +1,7 @@
 const mix = require("laravel-mix")
-const themeRoot = `web/app/themes/osperformance`
-const publicPath = `${themeRoot}/dist`
-const resourceRoot = `${themeRoot}/src`
+const pluginRoot = `web/app/plugins/os-blocks`
+const publicPath = `${pluginRoot}/dist`
+const resourceRoute = `${pluginRoot}/src`
 
 // set the public path directory
 mix.setPublicPath(publicPath)
@@ -11,11 +11,29 @@ mix.version()
 
 // set global webpack config
 mix.webpackConfig({
+  entry: {
+    index: `/${resourceRoute}/index.js`
+  },
+  output: {
+    filename: `[name].js`,
+    path: path.resolve( process.cwd(), publicPath )
+  },
   resolve: {
     modules: [`node_modules`],
   },
   module: {
     rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+            loader: 'babel-loader',
+            options: {
+                presets: [ "@babel/preset-env", "@babel/preset-react" ],
+                plugins: [ "@babel/plugin-transform-runtime" ]
+            }
+        }
+      },
       {
         test: /\.scss/,
         enforce: `pre`,
@@ -27,21 +45,13 @@ mix.webpackConfig({
 
 // initialise the mix compiling
 mix
-  .babel(
-    [
-      `${resourceRoot}/scripts/index.js`,
-      `${resourceRoot}/scripts/editor.js`,
-    ],
-    `js/index.js`
-  )
-  .minify(`${publicPath}/js/index.js`)
-  .minify(`${publicPath}/js/editor.js`)
-  .sass(`${resourceRoot}/styles/editor.scss`, `css`)
-  .sass(`${resourceRoot}/styles/index.scss`, `css`)
+  .minify(`${publicPath}/index.js`)
+  .sass(`${resourceRoute}/editor.scss`, ``)
+  .sass(`${resourceRoute}/style.scss`, ``)
   .options({
     processCssUrls: false,
   })
   .browserSync({
     proxy: `http://os-performance.local/`,
-    files: [`${themeRoot}/**/*.php}`, `${resourceRoot}/**/*`],
+    files: [`${resourceRoute}/**/*}, ${resourceRoute}/*}`],
   })
